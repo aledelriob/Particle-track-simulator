@@ -12,19 +12,8 @@
 import numpy as np
 import matplotlib.pyplot as plt
 import random
-from matplotlib.animation import FuncAnimation, PillowWriter
 
-# ============================================
-# PARTICLE TYPES DEFINITION
-# ============================================
 
-# Define different particle types with their properties
-PARTICLE_TYPES = {
-    'electron': {'charge': -1, 'mass': 0.0005, 'color': 'blue', 'label': 'e⁻'},
-    'proton':   {'charge':  1, 'mass': 1.0,    'color': 'red',  'label': 'p⁺'},
-    'muon':     {'charge': -1, 'mass': 0.1,    'color': 'green','label': 'μ⁻'},
-    'neutron':  {'charge':  0, 'mass': 1.0,    'color': 'gray', 'label': 'n⁰'}
-}
 
 # ============================================
 # FUNCTION 1: CREATE A PARTICLE
@@ -32,39 +21,40 @@ PARTICLE_TYPES = {
 
 def create_particle():
     """
-    Creates a particle with random type and direction.
+    Creates a particle with random properties.
     
     Returns:
         dict: Dictionary with particle properties
     """
     
-    # Choose a random particle type
-    particle_type = random.choice(list(PARTICLE_TYPES.keys()))
-    
-    # Get properties from the type definition
-    type_props = PARTICLE_TYPES[particle_type]
-    
     # Generate random angle between 0 and 360 degrees
     angle_degrees = random.uniform(0, 360)
     
     # Convert to radians (Python uses radians, not degrees)
+    # Formula: radians = degrees * (π / 180)
     angle_radians = angle_degrees * (np.pi / 180)
     
     # Random velocity between 1 and 10 (arbitrary units)
     velocity = random.uniform(1, 10)
+
+    # NEW: Random charge (-1, 0, or +1)
+    # -1 = negative particle (e.g., electron)
+    #  0 = neutral particle (e.g., neutron)
+    # +1 = positive particle (e.g., proton)
+    charge = random.choice([-1, 0, 1])
+    
+    # NEW: Random mass (1 to 5 arbitrary units)
+    mass = random.uniform(1, 5)
     
     # Create dictionary with particle properties
     particle = {
-        'type': particle_type,
         'angle_degrees': angle_degrees,
         'angle_radians': angle_radians,
         'velocity': velocity,
-        'x_initial': 0,
+        'x_initial': 0,  # Always starts from origin
         'y_initial': 0,
-        'charge': type_props['charge'],
-        'mass': type_props['mass'],
-        'color': type_props['color'],
-        'label': type_props['label']
+        'charge': charge, # NEW
+        'mass': mass      # NEW
     }
     
     return particle
@@ -75,17 +65,17 @@ def create_particle():
 # ============================================
 
 # Create a test particle
-# test_particle = create_particle()
+test_particle = create_particle()
 
 # Print its properties
-# print("=" * 50)
-# print("TEST PARTICLE")
-# print("=" * 50)
-# print(f"Angle: {test_particle['angle_degrees']:.2f} degrees")
-# print(f"Angle in radians: {test_particle['angle_radians']:.2f} rad")
-# print(f"Velocity: {test_particle['velocity']:.2f}")
-# print(f"Initial position: ({test_particle['x_initial']}, {test_particle['y_initial']})")
-# print("=" * 50)
+print("=" * 50)
+print("TEST PARTICLE")
+print("=" * 50)
+print(f"Angle: {test_particle['angle_degrees']:.2f} degrees")
+print(f"Angle in radians: {test_particle['angle_radians']:.2f} rad")
+print(f"Velocity: {test_particle['velocity']:.2f}")
+print(f"Initial position: ({test_particle['x_initial']}, {test_particle['y_initial']})")
+print("=" * 50)
 
 # ============================================
 # FUNCTION 2: CALCULATE PARTICLE POSITION
@@ -164,17 +154,17 @@ def calculate_position(particle, time, magnetic_field=0.0):
 # ============================================
 
 # Create a particle
-# test_particle = create_particle()
+test_particle = create_particle()
 
 # Calculate position at different times
-# print("\nTEST: PARTICLE POSITION AT DIFFERENT TIMES")
-# print("=" * 50)
+print("\nTEST: PARTICLE POSITION AT DIFFERENT TIMES")
+print("=" * 50)
 
-# for t in [0, 1, 2, 3, 4, 5]:
-#    position = calculate_position(test_particle, t)
-#    print(f"Time t={t}: Position = ({position[0]:.2f}, {position[1]:.2f})")
+for t in [0, 1, 2, 3, 4, 5]:
+    position = calculate_position(test_particle, t)
+    print(f"Time t={t}: Position = ({position[0]:.2f}, {position[1]:.2f})")
 
-# print("=" * 50)
+print("=" * 50)
 
 # ============================================
 # FUNCTION 3: SIMULATE MULTIPLE PARTICLES
@@ -227,43 +217,17 @@ def simulate_particles(num_particles, max_time, time_steps, magnetic_field=0.0):
 # ============================================
 
 # Simulate 5 particles for 10 time units with 100 time steps
-# print("\nTEST: SIMULATING 5 PARTICLES")
-# print("=" * 50)
+print("\nTEST: SIMULATING 5 PARTICLES")
+print("=" * 50)
 
-# trajectories = simulate_particles(num_particles=5, max_time=10, time_steps=100)
+trajectories = simulate_particles(num_particles=5, max_time=10, time_steps=100)
 
-# print(f"Number of trajectories: {len(trajectories)}")
-# print(f"Points per trajectory: {len(trajectories[0])}")
-# print(f"First trajectory, first point: {trajectories[0][0]}")
-# print(f"First trajectory, last point: {trajectories[0][-1]}")
-# print("=" * 50)
+print(f"Number of trajectories: {len(trajectories)}")
+print(f"Points per trajectory: {len(trajectories[0])}")
+print(f"First trajectory, first point: {trajectories[0][0]}")
+print(f"First trajectory, last point: {trajectories[0][-1]}")
+print("=" * 50)
 
-# ============================================
-# HELPER FUNCTION: GET PARTICLE COLORS
-# ============================================
-
-def get_particle_colors_and_labels(num_particles):
-    """
-    Generates colors and labels for particle types.
-    
-    Args:
-        num_particles (int): Number of particles
-    
-    Returns:
-        tuple: (colors_list, labels_dict)
-    """
-    
-    colors = []
-    
-    # Generate random particle types for visualization
-    particle_types_list = list(PARTICLE_TYPES.keys())
-    
-    for i in range(num_particles):
-        # Assign random type for this trajectory
-        ptype = random.choice(particle_types_list)
-        colors.append(PARTICLE_TYPES[ptype]['color'])
-    
-    return colors, {}
 
 # ============================================
 # FUNCTION 4: PLOT TRAJECTORIES
@@ -283,24 +247,22 @@ def plot_trajectories(trajectories, detector_positions=None, show_legend=True):
     plt.figure(figsize=(12, 10))
     
     # Plot each trajectory
-    # Generate colors based on particle types
-    type_colors, type_labels = get_particle_colors_and_labels(len(trajectories))
-    
     for i, trajectory in enumerate(trajectories):
         
         # Extract x and y coordinates
         x_coords = [point[0] for point in trajectory]
         y_coords = [point[1] for point in trajectory]
         
-        # Get color for this particle type
-        particle_color = type_colors[i]
-        
-        # Set line properties based on number of particles
+        # Plot the trajectory with a random color
+        # For many particles, use thin lines with low alpha
         alpha_value = 0.5 if len(trajectories) > 20 else 0.7
         line_width = 1 if len(trajectories) > 20 else 2
         
-        # Plot the trajectory
-        plt.plot(x_coords, y_coords, color=particle_color, linewidth=line_width, alpha=alpha_value)
+        plt.plot(x_coords, y_coords, linewidth=line_width, alpha=alpha_value)
+        
+        # Mark the starting point (only for first few particles)
+        if i < 5:
+            plt.plot(trajectory[0][0], trajectory[0][1], 'o', markersize=6, color='red', alpha=0.5)
     
     # Add detector lines if provided
     if detector_positions:
@@ -316,25 +278,10 @@ def plot_trajectories(trajectories, detector_positions=None, show_legend=True):
     
     # Add grid
     plt.grid(True, alpha=0.3)
-
-        # Add legend for particle types
-    from matplotlib.lines import Line2D
     
-    legend_elements = []
-    for ptype, props in PARTICLE_TYPES.items():
-        legend_elements.append(Line2D([0], [0], color=props['color'], linewidth=2, label=f"{props['label']} ({ptype})"))
-    
-    plt.legend(handles=legend_elements, loc='upper right', fontsize=10, framealpha=0.8)
-    
-    # Add legend for particle types
-    from matplotlib.lines import Line2D
-    
-    legend_elements = []
-    for ptype, props in PARTICLE_TYPES.items():
-        legend_elements.append(Line2D([0], [0], color=props['color'], linewidth=2, label=f"{props['label']} ({ptype})"))
-    
-    if len(legend_elements) > 0 and show_legend:
-        plt.legend(handles=legend_elements, loc='upper right', fontsize=10, framealpha=0.8)
+    # Add legend only if requested and not too many particles
+    if show_legend and len(trajectories) <= 10:
+        plt.legend()
     
     # Set equal aspect ratio (so circles look like circles)
     plt.axis('equal')
@@ -348,6 +295,7 @@ def plot_trajectories(trajectories, detector_positions=None, show_legend=True):
     
     # Show the plot
     plt.show()
+
     
 # ============================================
 # TEST THE PLOT FUNCTION
@@ -444,105 +392,6 @@ def plot_trajectories_3d(trajectories, detector_positions=None):
 
 
 # ============================================
-# FUNCTION 4C: ANIMATE TRAJECTORIES
-# ============================================
-
-def animate_trajectories(trajectories, detector_positions=None, num_frames=50):
-    """
-    Creates an animation of particle trajectories.
-    
-    Args:
-        trajectories (list): List of trajectories
-        detector_positions (list, optional): X-coordinates of detectors
-        num_frames (int): Number of frames in the animation
-    """
-    
-    # Create figure
-    fig, ax = plt.subplots(figsize=(12, 10))
-    
-    # Initialize empty lines for each trajectory
-    lines = []
-    points = []
-    
-    for i in range(len(trajectories)):
-        line, = ax.plot([], [], linewidth=2, alpha=0.7)
-        point, = ax.plot([], [], 'o', markersize=8, alpha=0.8)
-        lines.append(line)
-        points.append(point)
-    
-    # Add detector lines
-    if detector_positions:
-        for x_pos in detector_positions:
-            ax.axvline(x=x_pos, color='gray', linestyle='--', linewidth=1.5, alpha=0.5)
-    
-    # Set axis limits
-    all_x = [point[0] for traj in trajectories for point in traj]
-    all_y = [point[1] for traj in trajectories for point in traj]
-    
-    margin = 10
-    ax.set_xlim(min(all_x) - margin, max(all_x) + margin)
-    ax.set_ylim(min(all_y) - margin, max(all_y) + margin)
-    
-    # Labels and title
-    ax.set_xlabel('X Position', fontsize=12)
-    ax.set_ylabel('Y Position', fontsize=12)
-    ax.set_title('Particle Trajectories Animation\nDESY Ausbildung Application', 
-                 fontsize=14, fontweight='bold')
-    ax.grid(True, alpha=0.3)
-    ax.set_aspect('equal')
-    
-    # Add text for frame counter
-    frame_text = ax.text(0.02, 0.98, '', transform=ax.transAxes, fontsize=10, 
-                         verticalalignment='top')
-    
-    # Initialization function
-    def init():
-        for line, point in zip(lines, points):
-            line.set_data([], [])
-            point.set_data([], [])
-        frame_text.set_text('')
-        return lines + points + [frame_text]
-    
-    # Animation function
-    def animate(frame):
-        # Calculate how many points to show
-        points_to_show = int(frame * len(trajectories[0]) / num_frames)
-        
-        for i, (line, point, trajectory) in enumerate(zip(lines, points, trajectories)):
-            # Get points up to current frame
-            x_data = [trajectory[j][0] for j in range(min(points_to_show, len(trajectory)))]
-            y_data = [trajectory[j][1] for j in range(min(points_to_show, len(trajectory)))]
-            
-            # Update line
-            line.set_data(x_data, y_data)
-            
-            # Update point (show only the last point)
-            if len(x_data) > 0:
-                point.set_data([x_data[-1]], [y_data[-1]])
-            else:
-                point.set_data([], [])
-        
-        # Update frame counter
-        frame_text.set_text(f'Frame: {frame}/{num_frames}')
-        
-        return lines + points + [frame_text]
-    
-    # Create animation
-    anim = FuncAnimation(fig, animate, init_func=init, frames=num_frames, 
-                         interval=50, blit=True, repeat=False)
-    
-    # Save as GIF
-    anim.save('output/animation.gif', writer=PillowWriter(fps=20), dpi=150)
-    print("Animation saved to output/animation.gif")
-    
-    # Show the animation (optional, can be slow)
-    # plt.show()
-    
-    return anim
-
-
-
-# ============================================
 # FUNCTION 5: DETECT PARTICLE HITS
 # ============================================
 
@@ -601,26 +450,26 @@ def detect_hits(trajectories, detector_positions):
 # TEST THE DETECT HITS FUNCTION
 # ============================================
 
-# print("\nTEST: DETECTING PARTICLE HITS")
-# print("=" * 50)
+print("\nTEST: DETECTING PARTICLE HITS")
+print("=" * 50)
 
 # Simulate particles
-# trajectories = simulate_particles(num_particles=10, max_time=10, time_steps=100)
+trajectories = simulate_particles(num_particles=10, max_time=10, time_steps=100)
 
 # Define detector positions
-# detectors = [5, 10, 15]
+detectors = [5, 10, 15]
 
 # Detect hits
-# hits = detect_hits(trajectories, detectors)
+hits = detect_hits(trajectories, detectors)
 
 # Print results
-# for detector_key, detector_data in hits.items():
-#    print(f"\n{detector_key} (x={detector_data['x_position']}):")
-#    print(f"  Number of hits: {len(detector_data['y_hits'])}")
-#    if len(detector_data['y_hits']) > 0:
-#         print(f"  Y positions: {[f'{y:.2f}' for y in detector_data['y_hits']]}")
+for detector_key, detector_data in hits.items():
+    print(f"\n{detector_key} (x={detector_data['x_position']}):")
+    print(f"  Number of hits: {len(detector_data['y_hits'])}")
+    if len(detector_data['y_hits']) > 0:
+        print(f"  Y positions: {[f'{y:.2f}' for y in detector_data['y_hits']]}")
 
-# print("=" * 50)
+print("=" * 50)
 
 # ============================================
 # FUNCTION 6: CALCULATE STATISTICS
@@ -667,21 +516,21 @@ def calculate_statistics(hits):
 # TEST THE STATISTICS FUNCTION
 # ============================================
 
-# print("\nTEST: CALCULATING STATISTICS")
-# print("=" * 50)
+print("\nTEST: CALCULATING STATISTICS")
+print("=" * 50)
 
 # Calculate statistics
-# stats = calculate_statistics(hits)
+stats = calculate_statistics(hits)
 
 # Print results
-# for detector_key, detector_stats in stats.items():
-#    print(f"\n{detector_key}:")
-#    print(f"  Number of hits: {detector_stats['num_hits']}")
-#    print(f"  Mean Y position: {detector_stats['mean_y']:.2f}")
-#    print(f"  Std deviation: {detector_stats['std_y']:.2f}")
-#    print(f"  Range: [{detector_stats['min_y']:.2f}, {detector_stats['max_y']:.2f}]")
+for detector_key, detector_stats in stats.items():
+    print(f"\n{detector_key}:")
+    print(f"  Number of hits: {detector_stats['num_hits']}")
+    print(f"  Mean Y position: {detector_stats['mean_y']:.2f}")
+    print(f"  Std deviation: {detector_stats['std_y']:.2f}")
+    print(f"  Range: [{detector_stats['min_y']:.2f}, {detector_stats['max_y']:.2f}]")
 
-# print("=" * 50)
+print("=" * 50)
 
 # ============================================
 # FUNCTION 7: MAIN SIMULATION
@@ -715,7 +564,6 @@ def main_simulation():
     
     # Step 1: Simulate particles
     print("Step 1: Simulating particle trajectories...")
-    print(f" Particle types available: (list(PARTICLE_TYPES.keys())")
     trajectories = simulate_particles(NUM_PARTICLES, MAX_TIME, TIME_STEPS, MAGNETIC_FIELD)
     print(f"  ✓ Generated {len(trajectories)} trajectories")
     print(f"    Magnetic field: {MAGNETIC_FIELD}")
@@ -753,12 +601,6 @@ def main_simulation():
     print("Step 4B: Plotting trajectories in 3D...")
     plot_trajectories_3d(trajectories, detector_positions=DETECTOR_POSITIONS)
     print(f"  [OK] 3D plot saved to output/tracks_3d.png")
-    print()
-
-        # Step 4C: Create animation
-    print("Step 4C: Creating animation...")
-    animate_trajectories(trajectories, detector_positions=DETECTOR_POSITIONS, num_frames=50)
-    print(f"  [OK] Animation saved to output/animation.gif")
     print()
     
     # Step 5: Save data to file
@@ -839,30 +681,6 @@ def save_data_to_csv(trajectories, hits, stats):
             for point_idx in range(min(10, len(trajectories[particle_idx]))):
                 x, y = trajectories[particle_idx][point_idx]
                 f.write(f"{particle_idx+1},{point_idx},{x:.6f},{y:.6f}\n")
-
-# ============================================
-# FUNCTION 8: COUNT PARTICLES BY TYPE
-# ============================================
-
-def count_particles_by_type(trajectories):
-    """
-    Counts how many particles of each type were simulated.
-    
-    Args:
-        trajectories (list): List of trajectories
-    
-    Returns:
-        dict: Dictionary with counts for each particle type
-    """
-    
-    counts = {ptype: 0 for ptype in PARTICLE_TYPES.keys()}
-    
-    # This would require passing particle info with trajectories
-    # For now, we'll just count total
-    total = len(trajectories)
-    
-    return {'total': total, 'by_type': counts}
-
 
                 
 # ============================================
