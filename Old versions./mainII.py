@@ -13,7 +13,6 @@ import numpy as np
 import matplotlib.pyplot as plt
 import random
 from matplotlib.animation import FuncAnimation, PillowWriter
-from matplotlib.animation import FFMpegWriter
 
 # ============================================
 # PARTICLE TYPES DEFINITION
@@ -192,25 +191,17 @@ def simulate_particles(num_particles, max_time, time_steps, magnetic_field=0.0):
         magnetic_field (float): Magnetic field strenght (defaul: 0)
     
     Returns:
-        tuple: (trajectories, particle_info)
-            - trajectories: List of trajectories
-            - particle_info: List of dicts with particle properties
+        list: List of trajectories, each trajectory is a list of (x, y) positions
     """
     
     # Create list to store all trajectories
     all_trajectories = []
-    
-    # Create list to store particle info
-    all_particle_info = []
     
     # Generate and simulate each particle
     for i in range(num_particles):
         
         # Create a new particle
         particle = create_particle()
-        
-        # Store particle info (type, charge, color, etc.)
-        all_particle_info.append(particle)
         
         # Create list to store this particle's trajectory
         trajectory = []
@@ -229,7 +220,7 @@ def simulate_particles(num_particles, max_time, time_steps, magnetic_field=0.0):
         # Add this trajectory to the list
         all_trajectories.append(trajectory)
     
-    return all_trajectories, all_particle_info
+    return all_trajectories
 
 # ============================================
 # TEST THE SIMULATION FUNCTION
@@ -278,7 +269,7 @@ def get_particle_colors_and_labels(num_particles):
 # FUNCTION 4: PLOT TRAJECTORIES
 # ============================================
 
-def plot_trajectories(trajectories, particle_info=None, detector_positions=None, show_legend=True):
+def plot_trajectories(trajectories, detector_positions=None, show_legend=True):
     """
     Plots particle trajectories using matplotlib.
     
@@ -292,14 +283,8 @@ def plot_trajectories(trajectories, particle_info=None, detector_positions=None,
     plt.figure(figsize=(12, 10))
     
     # Plot each trajectory
-    # Use actual particle colors from particle_info
-    if particle_info is None:
-        # Fallback to random colors if no particle info provided
-        type_colors, _ = get_particle_colors_and_labels(len(trajectories))
-    else:
-        # Use actual colors from particle info
-        type_colors = [p['color'] for p in particle_info]
-        
+    # Generate colors based on particle types
+    type_colors, type_labels = get_particle_colors_and_labels(len(trajectories))
     
     for i, trajectory in enumerate(trajectories):
         
@@ -332,7 +317,7 @@ def plot_trajectories(trajectories, particle_info=None, detector_positions=None,
     # Add grid
     plt.grid(True, alpha=0.3)
 
-    # Add legend for particle types
+        # Add legend for particle types
     from matplotlib.lines import Line2D
     
     legend_elements = []
@@ -340,6 +325,16 @@ def plot_trajectories(trajectories, particle_info=None, detector_positions=None,
         legend_elements.append(Line2D([0], [0], color=props['color'], linewidth=2, label=f"{props['label']} ({ptype})"))
     
     plt.legend(handles=legend_elements, loc='upper right', fontsize=10, framealpha=0.8)
+    
+    # Add legend for particle types
+    from matplotlib.lines import Line2D
+    
+    legend_elements = []
+    for ptype, props in PARTICLE_TYPES.items():
+        legend_elements.append(Line2D([0], [0], color=props['color'], linewidth=2, label=f"{props['label']} ({ptype})"))
+    
+    if len(legend_elements) > 0 and show_legend:
+        plt.legend(handles=legend_elements, loc='upper right', fontsize=10, framealpha=0.8)
     
     # Set equal aspect ratio (so circles look like circles)
     plt.axis('equal')
@@ -396,7 +391,7 @@ def plot_trajectories_3d(trajectories, detector_positions=None):
     fig = plt.figure(figsize=(14, 10))
     ax = fig.add_subplot(111, projection='3d')
     
-        # Plot each trajectory
+    # Plot each trajectory
     for i, trajectory in enumerate(trajectories):
         
         # Extract x, y, and z coordinates
@@ -405,10 +400,9 @@ def plot_trajectories_3d(trajectories, detector_positions=None):
         y_coords = [point[1] for point in trajectory]
         z_coords = list(range(len(trajectory)))  # Time steps as z
         
-        # Use color from particle_info if available (we'll add this parameter later)
-        # For now, use viridis colormap
+        # Plot the trajectory with a color based on particle index
         color = plt.cm.viridis(i / len(trajectories))
-        ax.plot(x_coords, y_coords, z_coords, color=color, linewidth=1.5, alpha=0.7)
+        ax.plot(x_coords, y_coords, z_coords, color=color, linewidth=1.5, alpha=0.7, label=f'Particle {i+1}')
         
         # Mark the starting point
         ax.scatter(trajectory[0][0], trajectory[0][1], 0, c='red', s=50, marker='o')
@@ -434,18 +428,6 @@ def plot_trajectories_3d(trajectories, detector_positions=None):
     
     # Add grid
     ax.grid(True, alpha=0.3)
-
-        # Add legend for particle types
-    from matplotlib.lines import Line2D
-    
-    legend_elements = []
-    for ptype, props in PARTICLE_TYPES.items():
-        legend_elements.append(Line2D([0], [0], color=props['color'], linewidth=2, label=f"{props['label']} ({ptype})"))
-    
-    ax.legend(handles=legend_elements, loc='upper right', fontsize=10, framealpha=0.8)
-    
-    # Set viewing angle
-    ax.view_init(elev=20, azim=45)
     
     # Set viewing angle
     ax.view_init(elev=20, azim=45)
@@ -465,7 +447,7 @@ def plot_trajectories_3d(trajectories, detector_positions=None):
 # FUNCTION 4C: ANIMATE TRAJECTORIES
 # ============================================
 
-def animate_trajectories(trajectories, particle_info=None, detector_positions=None, num_frames=50):
+def animate_trajectories(trajectories, detector_positions=None, num_frames=50):
     """
     Creates an animation of particle trajectories.
     
@@ -483,14 +465,8 @@ def animate_trajectories(trajectories, particle_info=None, detector_positions=No
     points = []
     
     for i in range(len(trajectories)):
-        # Get color from particle info if available
-        if particle_info is not None:
-            color = particle_info[i]['color']
-        else:
-            color = plt.cm.viridis(i / len(trajectories))
-        
-        line, = ax.plot([], [], color=color, linewidth=1.5, alpha=0.6)
-        point, = ax.plot([], [], 'o', color=color, markersize=6, alpha=0.7)
+        line, = ax.plot([], [], linewidth=2, alpha=0.7)
+        point, = ax.plot([], [], 'o', markersize=8, alpha=0.8)
         lines.append(line)
         points.append(point)
     
@@ -513,16 +489,6 @@ def animate_trajectories(trajectories, particle_info=None, detector_positions=No
     ax.set_title('Particle Trajectories Animation\nDESY Ausbildung Application', 
                  fontsize=14, fontweight='bold')
     ax.grid(True, alpha=0.3)
-    # Add legend for particle types
-    from matplotlib.lines import Line2D
-    
-    legend_elements = []
-    for ptype, props in PARTICLE_TYPES.items():
-        legend_elements.append(Line2D([0], [0], color=props['color'], linewidth=2, label=f"{props['label']} ({ptype})"))
-    
-    ax.legend(handles=legend_elements, loc='upper right', fontsize=10, framealpha=0.8)
-    
-    ax.set_aspect('equal')
     ax.set_aspect('equal')
     
     # Add text for frame counter
@@ -565,17 +531,9 @@ def animate_trajectories(trajectories, particle_info=None, detector_positions=No
     anim = FuncAnimation(fig, animate, init_func=init, frames=num_frames, 
                          interval=50, blit=True, repeat=False)
     
-        # Save as GIF
+    # Save as GIF
     anim.save('output/animation.gif', writer=PillowWriter(fps=20), dpi=150)
     print("Animation saved to output/animation.gif")
-    
-    # Save as MP4 video (higher quality)
-    try:
-        anim.save('output/animation.mp4', writer=FFMpegWriter(fps=20), dpi=150)
-        print("Animation saved to output/animation.mp4")
-    except Exception as e:
-        print(f"Note: Could not save MP4 (ffmpeg may not be installed): {e}")
-        print("GIF animation was saved successfully")
     
     # Show the animation (optional, can be slow)
     # plt.show()
@@ -758,12 +716,12 @@ def main_simulation():
     # Step 1: Simulate particles
     print("Step 1: Simulating particle trajectories...")
     print(f" Particle types available: (list(PARTICLE_TYPES.keys())")
-    trajectories, particle_info = simulate_particles(NUM_PARTICLES, MAX_TIME, TIME_STEPS, MAGNETIC_FIELD)
+    trajectories = simulate_particles(NUM_PARTICLES, MAX_TIME, TIME_STEPS, MAGNETIC_FIELD)
     print(f"  ✓ Generated {len(trajectories)} trajectories")
     print(f"    Magnetic field: {MAGNETIC_FIELD}")
     print()
     
-    # Step 2: Detect hits
+        # Step 2: Detect hits
     print("Step 2: Detecting particle hits on detectors...")
     hits = detect_hits(trajectories, DETECTOR_POSITIONS)
     
@@ -775,7 +733,7 @@ def main_simulation():
     print(f"  [OK] Detected {total_hits} total hits across {len(hits)} detectors")
     print()
     
-    # Step 3: Calculate statistics
+        # Step 3: Calculate statistics
     print("Step 3: Calculating statistics...")
     stats = calculate_statistics(hits)
     
@@ -788,7 +746,7 @@ def main_simulation():
     
     # Step 4: Plot trajectories
     print("Step 4: Plotting trajectories...")
-    plot_trajectories(trajectories, particle_info, detector_positions=DETECTOR_POSITIONS, show_legend=True)
+    plot_trajectories(trajectories, detector_positions=DETECTOR_POSITIONS, show_legend=False)
     print(f"  [OK] 2D plot saved to output/tracks.png")
     
     # Step 4B: Plot trajectories in 3D
@@ -799,7 +757,7 @@ def main_simulation():
 
         # Step 4C: Create animation
     print("Step 4C: Creating animation...")
-    animate_trajectories(trajectories, particle_info, detector_positions=DETECTOR_POSITIONS, num_frames=50)
+    animate_trajectories(trajectories, detector_positions=DETECTOR_POSITIONS, num_frames=50)
     print(f"  [OK] Animation saved to output/animation.gif")
     print()
     

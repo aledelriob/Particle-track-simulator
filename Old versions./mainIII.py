@@ -13,7 +13,6 @@ import numpy as np
 import matplotlib.pyplot as plt
 import random
 from matplotlib.animation import FuncAnimation, PillowWriter
-from matplotlib.animation import FFMpegWriter
 
 # ============================================
 # PARTICLE TYPES DEFINITION
@@ -565,17 +564,9 @@ def animate_trajectories(trajectories, particle_info=None, detector_positions=No
     anim = FuncAnimation(fig, animate, init_func=init, frames=num_frames, 
                          interval=50, blit=True, repeat=False)
     
-        # Save as GIF
+    # Save as GIF
     anim.save('output/animation.gif', writer=PillowWriter(fps=20), dpi=150)
     print("Animation saved to output/animation.gif")
-    
-    # Save as MP4 video (higher quality)
-    try:
-        anim.save('output/animation.mp4', writer=FFMpegWriter(fps=20), dpi=150)
-        print("Animation saved to output/animation.mp4")
-    except Exception as e:
-        print(f"Note: Could not save MP4 (ffmpeg may not be installed): {e}")
-        print("GIF animation was saved successfully")
     
     # Show the animation (optional, can be slow)
     # plt.show()
