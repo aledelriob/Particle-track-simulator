@@ -429,8 +429,8 @@ def plot_trajectories_3d(trajectories, detector_positions=None):
     ax.set_xlabel('X Position', fontsize=12, labelpad=10)
     ax.set_ylabel('Y Position', fontsize=12, labelpad=10)
     ax.set_zlabel('Time Step', fontsize=12, labelpad=10)
-    ax.set_title('Particle Trajectories Simulation (3D)\nDESY Ausbildung Application', 
-                 fontsize=14, fontweight='bold', pad=20)
+    ax.set_title(f'Particle Trajectories Simulation (3D)\n{len(trajectories)} Particles - DESY Ausbildung Application', 
+             fontsize=14, fontweight='bold', pad=20)
     
     # Add grid
     ax.grid(True, alpha=0.3)
@@ -510,8 +510,8 @@ def animate_trajectories(trajectories, particle_info=None, detector_positions=No
     # Labels and title
     ax.set_xlabel('X Position', fontsize=12)
     ax.set_ylabel('Y Position', fontsize=12)
-    ax.set_title('Particle Trajectories Animation\nDESY Ausbildung Application', 
-                 fontsize=14, fontweight='bold')
+    ax.set_title(f'Particle Trajectories Animation\n{len(trajectories)} Particles - DESY Ausbildung Application', 
+             fontsize=14, fontweight='bold')
     ax.grid(True, alpha=0.3)
     # Add legend for particle types
     from matplotlib.lines import Line2D
