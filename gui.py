@@ -108,7 +108,7 @@ class ParticleSimulatorGUI:
             text="▶️ Run Simulation",
             command=self.run_simulation,
             bg="#4CAF50",
-            fg="white",
+            fg="black",
             font=("Helvetica", 12, "bold"),
             padx=20,
             pady=10
@@ -121,7 +121,7 @@ class ParticleSimulatorGUI:
             text="📊 Plot 2D",
             command=self.plot_2d,
             bg="#2196F3",
-            fg="white",
+            fg="black",
             font=("Helvetica", 12),
             padx=15,
             pady=10
@@ -134,7 +134,7 @@ class ParticleSimulatorGUI:
             text="🎯 Plot 3D",
             command=self.plot_3d,
             bg="#FF9800",
-            fg="white",
+            fg="black",
             font=("Helvetica", 12),
             padx=15,
             pady=10
@@ -147,7 +147,7 @@ class ParticleSimulatorGUI:
             text="🎬 Animate",
             command=self.animate,
             bg="#9C27B0",
-            fg="white",
+            fg="black",
             font=("Helvetica", 12),
             padx=15,
             pady=10
@@ -166,7 +166,7 @@ class ParticleSimulatorGUI:
             status_frame,
             text="Ready to simulate",
             font=("Helvetica", 11),
-            fg="gray",
+            fg="white",
             pady=10
         )
         self.status_label.pack()

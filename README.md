@@ -1,80 +1,200 @@
-# Particle Track Simulator
+# 🔬 Particle Track Simulator
 
-A Python-based simulation of particle trajectories in a detector system, created for a DESY Ausbildung application.
+A particle trajectory simulator in magnetic fields, developed for the **DESY Ausbildung** application (Deutsches Elektronen-Synchrotron).
 
-## Description
+![Python](https://img.shields.io/badge/Python-3.8+-blue.svg)
+![License](https://img.shields.io/badge/License-MIT-green.svg)
 
-This program simulates particles emerging from a collision point and traveling through detector layers. It demonstrates basic concepts of particle physics, data analysis, and scientific visualization.
+---
 
-### Physics Background
+## 📖 Description
 
-The simulation models:
-- Particle generation with random angles and velocities
-- Linear trajectory propagation (x = v·t·cos(θ), y = v·t·sin(θ))
-- Detector planes that register particle crossings
-- Statistical analysis of detected hits
+This project simulates the motion of charged particles (electrons, protons, muons) under the influence of a **magnetic field**, applying the **Lorentz force**. Charged particles curve in circular trajectories, while neutral particles (neutrons) move in straight lines.
 
-### Features
+### Key Features:
+- ✅ Real physics based on Lorentz force: \( \vec{F} = q(\vec{v} \times \vec{B}) \)
+- ✅ 4 particle types with unique properties (charge, mass, color)
+- ✅ 2D and 3D trajectory visualization
+- ✅ Particle motion animation
+- ✅ Hit detection on virtual detectors
+- ✅ Statistics and data analysis
+- ✅ Interactive graphical interface (GUI)
 
-- Generate random particles with different properties
-- Simulate particle trajectories through detector layers
-- Detect and record particle hits on detectors
-- Calculate statistics (mean, std, min, max)
-- Visualize trajectories with matplotlib
-- Save results to CSV file
+---
 
-## Technologies
+## 🎬 Demo
 
-- **Python 3.14**
-- **NumPy** - Numerical computations
-- **Matplotlib** - Data visualization
+### 2D Visualization
+![2D Plot](output/tracks.png)
 
-## Project Structure
+### 3D Visualization
+![3D Plot](output/tracks_3d.png)
 
-The project has the following structure:
+### Animation
+![Animation](output/animation.gif)
 
-- `main.py` - Main simulation code with all functions
-- `functions.py` - Helper functions (optional, for future expansion)
-- `README.md` - This file (project documentation)
-- `output/` - Folder for generated outputs
-  - `tracks.png` - Trajectory visualization (saved automatically)
-  - `data.csv` - Simulation data (saved automatically)
+---
 
-## Usage
+## ⚙️ Installation
 
-Run the simulation:
+### Requirements:
+- Python 3.8 or higher
+- pip (Python package manager)
+
+### Steps:
+
+1. **Clone this repository:**
+```bash
+git clone [https://github.com/aledelriob/particle-track-simulator.git](https://github.com/aledelriob/particle-track-simulator.git)
+cd particle-track-simulator
+```
+
+2. **Install dependencies:**
+```bash
+pip install numpy matplotlib
+```
+
+3. **Run the simulator:**
 ```bash
 python main.py
 ```
 
-The program will:
-1. Generate 50 particles with random trajectories
-2. Calculate positions at 100 time steps
-3. Detect hits on 3 detector planes
-4. Calculate statistics for each detector
-5. Save visualization to `output/tracks.png`
-6. Save data to `output/data.csv`
+4. **Or run the GUI:**
+```bash
+python gui.py
+```
 
-## Output
+---
 
-### Trajectory Plot
-The program generates a plot showing all particle trajectories with detector planes marked as vertical dashed lines.
+## 🚀 Usage
 
-### Data File
-A CSV file containing:
-- Detector statistics (hits, mean position, standard deviation)
-- Sample trajectory data (first 5 particles, first 10 time points)
+### Option 1: Command Line
 
-## Author
+Run `main.py` to execute the simulation with default configuration:
 
-**Alejandra del Rio B.**  
-Application for DESY Ausbildung 2027  
-Fachinformatikerin für Anwendungsentwicklung
+```bash
+python main.py
+```
 
-## License
+**Output:**
+- `output/tracks.png` - 2D plot
+- `output/tracks_3d.png` - 3D plot
+- `output/animation.gif` - Animation
+- `output/data.csv` - Simulation data
 
-This project is open source and available for educational purposes.
+### Option 2: Graphical Interface
 
-## Acknowledgments
+Run `gui.py` to open the interactive interface:
 
-This project was created as part of my application for an Ausbildung position at DESY (Deutsches Elektronen-Synchrotron) in Hamburg, Germany.
+```bash
+python gui.py
+```
+
+**You can:**
+- Configure number of particles
+- Adjust magnetic field strength
+- Modify detector positions
+- Run simulation
+- View 2D/3D plots
+- Create animation
+- See real-time statistics
+
+---
+
+## 🔬 Physics: Lorentz Force
+
+The **Lorentz force** describes the force experienced by a charged particle in a magnetic field:
+
+\[
+\vec{F} = q(\vec{v} \times \vec{B})
+\]
+
+Where:
+- \( q \) = particle charge
+- \( \vec{v} \) = particle velocity
+- \( \vec{B} \) = magnetic field
+
+### Curvature Radius:
+
+\[
+r = \frac{m \cdot v}{|q| \cdot B}
+\]
+
+### Angular Frequency:
+
+\[
+\omega = \frac{|q| \cdot B}{m}
+\]
+
+**Consequences:**
+- Charged particles (+/-) curve in **circles**
+- Neutral particles (0) move in **straight lines**
+- Radius depends on mass, velocity, charge, and magnetic field
+
+---
+
+## 🎨 Particle Types
+
+| Particle | Symbol | Charge | Mass | Color |
+|----------|--------|--------|------|-------|
+| Electron | e⁻ | -1 | 0.0005 | Blue |
+| Proton | p⁺ | +1 | 1.0 | Red |
+| Muon | μ⁻ | -1 | 0.1 | Green |
+| Neutron | n⁰ | 0 | 1.0 | Gray |
+
+---
+
+## 📁 Project Structure
+
+
+particle-track-simulator/
+│
+├── main.py # Main simulator
+├── gui.py # Graphical interface
+├── README.md # This file
+│
+├── output/ # Simulation results
+│ ├── tracks.png # 2D plot
+│ ├── tracks_3d.png # 3D plot
+│ ├── animation.gif # Animation
+│ └── data.csv # Exported data
+│
+└── requirements.txt # Python dependencies
+
+---
+
+## 🛠️ Technologies
+
+- **Python 3.8+** - Programming language
+- **NumPy** - Numerical computing
+- **Matplotlib** - Visualization and animation
+- **Tkinter** - Graphical interface
+
+---
+
+## 👤 Author
+
+**Alejandra del Río B.**
+
+Developed as a project for the **DESY Ausbildung** application (Deutsches Elektronen-Synchrotron), Hamburg, Germany.
+
+---
+
+## 📧 Contact
+
+- **Email:** [aledelrioba@gmail.com]
+- **GitHub:** [aledelriob]
+
+---
+
+## 📄 License
+
+This project is licensed under the MIT License.
+
+---
+
+<div align="center">
+
+**Made with ❤️ for particle physics**
+
+</div>
