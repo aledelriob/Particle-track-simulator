@@ -147,19 +147,21 @@ r = \frac{m \cdot v}{|q| \cdot B}
 ## 📁 Project Structure
 
 
+```text
 particle-track-simulator/
 │
-├── main.py # Main simulator
-├── gui.py # Graphical interface
-├── README.md # This file
+├── main.py                # Main simulator
+├── gui.py                 # Graphical interface
+├── README.md              # This file
 │
-├── output/ # Simulation results
-│ ├── tracks.png # 2D plot
-│ ├── tracks_3d.png # 3D plot
-│ ├── animation.gif # Animation
-│ └── data.csv # Exported data
+├── output/                # Simulation results
+│   ├── tracks.png         # 2D plot
+│   ├── tracks_3d.png      # 3D plot
+│   ├── animation.gif      # Animation
+│   └── data.csv           # Exported data
 │
-└── requirements.txt # Python dependencies
+└── requirements.txt       # Python dependencies
+```
 
 ---
 
