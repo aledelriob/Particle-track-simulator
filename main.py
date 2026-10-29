@@ -48,7 +48,7 @@ def create_particle():
     # Generate random angle between 0 and 360 degrees
     angle_degrees = random.uniform(0, 360)
     
-    # Convert to radians (Python uses radians, not degrees)
+    # Convert to radians for NumPy trigonometric functions
     angle_radians = angle_degrees * (np.pi / 180)
     
     # Random velocity between 1 and 10 (arbitrary units)
@@ -91,10 +91,14 @@ def create_particle():
 # ============================================
 # FUNCTION 2: CALCULATE PARTICLE POSITION
 # ============================================
+"""
+FUNCION COMPLETA ANTES DE CAMBIAR LAS ECUACIONES Y CORREGIR LOS PUNTOS DE PARTIDA. SE AGREGÓ LA VARIABLE signed_omega
+PARA ESTABLECER EL SIGNO DE LA DIRECCION Y SE RETIRO LA VARIABLE DIRECCIÓN PARA NO INFLUIR EL SIGNO DOS VECES.
 
 def calculate_position(particle, time, magnetic_field=0.0):
-    """
-    Calculates the position of a particle at a given time.
+
+aquí iban 3x"
+        Calculates the position of a particle at a given time.
     
     Args:
         particle (dict): Dictionary with particle properties
@@ -103,7 +107,7 @@ def calculate_position(particle, time, magnetic_field=0.0):
     
     Returns:
         tuple: (x, y) position coordinates
-    """
+aquí iban 3x"
     
     # Extract particle properties
     velocity = particle['velocity']
@@ -127,10 +131,11 @@ def calculate_position(particle, time, magnetic_field=0.0):
         # Angular frequency: ω = (|q| * B) / m
         
         # Calculate radius of curvature
-        radius = (mass * velocity) / (abs(charge) * abs(magnetic_field))
+        radius = (mass * velocity) / (abs(charge) * abs(magnetic_field)) #Qué es abs: abs() se asegura de que el número sea siempre positivo. En este caso el valor del radio no puede ser negativo en magnitud.  
         
         # Calculate angular frequency
-        omega = (abs(charge) * abs(magnetic_field)) / mass
+        # omega = (abs(charge) * abs(magnetic_field)) / mass
+        signed_omega = (charge * magnetic_field) / mass
         
         # Direction of curvature depends on charge sign
         # Positive charge: counterclockwise
@@ -147,18 +152,56 @@ def calculate_position(particle, time, magnetic_field=0.0):
         
         # Center of circular motion (offset from origin)
         # Perpendicular to initial velocity
-        center_x = x0 + direction * (mass * vy) / (charge * magnetic_field)
-        center_y = y0 - direction * (mass * vx) / (charge * magnetic_field)
+        # center_x = x0 + direction * (mass * vy) / (charge * magnetic_field)
+        center_x = x0 + vy / signed_omega
+        # center_y = y0 - direction * (mass * vx) / (charge * magnetic_field)
+        center_y = y0 - vx / signed_omega
+
         
         # Angle swept by the particle
-        theta = omega * time * direction
-        
+        # theta = omega * time * direction === Esta sería la ecuación de omega sin signo
+        # theta = signed_omega * time * direction === Esta sería la ecuación de omega con signo, pero doblemente ya que la dirección tendría otro signo.
+        theta = signed_omega * time
         # Position at time t (circular motion)
-        x = center_x - direction * radius * np.sin(theta + np.arctan2(y0 - center_y, x0 - center_x))
-        y = center_y + direction * radius * np.cos(theta + np.arctan2(y0 - center_y, x0 - center_x))
-    
+        # x = center_x - direction * radius * np.sin(theta + np.arctan2(y0 - center_y, x0 - center_x))
+        # y = center_y + direction * radius * np.cos(theta + np.arctan2(y0 - center_y, x0 - center_x))
+        x = center_x + (x0 - center_x) * np.cos(theta) + (y0 - center_y) * np.sin(theta)
+        y = center_y - (x0 - center_x) * np.sin(theta) + (y0 - center_y) * np.cos(theta)
+
     # Return the position (outside the if/else)
     return (x, y)
+
+"""
+
+def calculate_position(particle, time, magnetic_field=0.0):
+    velocity = particle['velocity']
+    angle = particle['angle_radians']
+    x0 = particle['x_initial']
+    y0 = particle['y_initial']
+    charge = particle['charge']
+    mass = particle['mass']
+
+    if magnetic_field == 0.0 or charge == 0:
+        x = x0 + velocity * time * np.cos(angle)
+        y = y0 + velocity * time * np.sin(angle)
+
+    else:
+        signed_omega = (charge * magnetic_field) / mass
+
+        vx = velocity * np.cos(angle)
+        vy = velocity * np.sin(angle)
+
+        center_x = x0 + vy / signed_omega
+        center_y = y0 - vx / signed_omega
+
+        theta = signed_omega * time
+
+        x = center_x + (x0 - center_x) * np.cos(theta) + (y0 - center_y) * np.sin(theta)
+        y = center_y - (x0 - center_x) * np.sin(theta) + (y0 - center_y) * np.cos(theta)
+
+    return (x, y)
+
+
 
 # ============================================
 # TEST THE POSITION FUNCTION
@@ -207,7 +250,7 @@ def simulate_particles(num_particles, max_time, time_steps, magnetic_field=0.0):
     for i in range(num_particles):
         
         # Create a new particle
-        particle = create_particle()
+        particle = create_particle() 
         
         # Store particle info (type, charge, color, etc.)
         all_particle_info.append(particle)
@@ -217,8 +260,8 @@ def simulate_particles(num_particles, max_time, time_steps, magnetic_field=0.0):
         
         # Calculate position at different times
         for t in range(time_steps):
-            # Calculate time value (0, 1, 2, ..., max_time)
-            current_time = t * (max_time / time_steps)
+            # Calculate time value (0, 1, 2, ..., max_time, inclusive)
+            current_time = t * (max_time / (time_steps - 1))
             
             # Calculate position at this time
             position = calculate_position(particle, current_time, magnetic_field)
@@ -253,13 +296,15 @@ def simulate_particles(num_particles, max_time, time_steps, magnetic_field=0.0):
 
 def get_particle_colors_and_labels(num_particles):
     """
-    Generates colors and labels for particle types.
-    
+    Generates random fallback colors for visualization.
+
     Args:
-        num_particles (int): Number of particles
-    
+        num_particles (int): Number of colors to generate
+
     Returns:
-        tuple: (colors_list, labels_dict)
+        tuple:
+            - List of randomly selected particle-type colors
+            - Empty dictionary, reserved for labels (not implemented)
     """
     
     colors = []
@@ -286,6 +331,7 @@ def plot_trajectories(trajectories, particle_info=None, detector_positions=None,
         trajectories (list): List of trajectories from simulate_particles()
         detector_positions (list, optional): List of x-coordinates for detectors
         show_legend (bool): Whether to show legend (disable for many particles)
+        particle_info (list, optional): Particle properties used to assign actual colors
     """
     
     # Create a new figure with specific size
@@ -339,7 +385,15 @@ def plot_trajectories(trajectories, particle_info=None, detector_positions=None,
     for ptype, props in PARTICLE_TYPES.items():
         legend_elements.append(Line2D([0], [0], color=props['color'], linewidth=2, label=f"{props['label']} ({ptype})"))
     
-    plt.legend(handles=legend_elements, loc='upper right', fontsize=10, framealpha=0.8)
+    # plt.legend(handles=legend_elements, loc='upper right', fontsize=10, framealpha=0.8)
+
+    if show_legend:
+        plt.legend(
+            handles=legend_elements,
+            loc='upper right',
+            fontsize=10,
+            framealpha=0.8
+        )
     
     # Set equal aspect ratio (so circles look like circles)
     plt.axis('equal')
@@ -380,13 +434,14 @@ def plot_trajectories(trajectories, particle_info=None, detector_positions=None,
 # FUNCTION 4B: PLOT TRAJECTORIES 3D
 # ============================================
 
-def plot_trajectories_3d(trajectories, detector_positions=None):
+def plot_trajectories_3d(trajectories, particle_info, detector_positions=None):
     """
     Plots particle trajectories in 3D using matplotlib.
     
     Args:
         trajectories (list): List of trajectories from simulate_particles()
         detector_positions (list, optional): List of x-coordinates for detectors
+        particle_info (list): Particle properties to assign actual colors
     """
     
     # Import 3D toolkit
@@ -404,21 +459,26 @@ def plot_trajectories_3d(trajectories, detector_positions=None):
         x_coords = [point[0] for point in trajectory]
         y_coords = [point[1] for point in trajectory]
         z_coords = list(range(len(trajectory)))  # Time steps as z
+
+        # Use the actual color of this particle
+        color = particle_info[i]["color"]
+        ax.plot(x_coords, y_coords, z_coords, color=color, linewidth=1.5, alpha=0.7)
         
         # Use color from particle_info if available (we'll add this parameter later)
         # For now, use viridis colormap
-        color = plt.cm.viridis(i / len(trajectories))
-        ax.plot(x_coords, y_coords, z_coords, color=color, linewidth=1.5, alpha=0.7)
+        # color = plt.cm.viridis(i / len(trajectories))
+        # ax.plot(x_coords, y_coords, z_coords, color=color, linewidth=1.5, alpha=0.7)
         
         # Mark the starting point
-        ax.scatter(trajectory[0][0], trajectory[0][1], 0, c='red', s=50, marker='o')
+        ax.scatter(trajectory[0][0], trajectory[0][1], 0, c='black', s=50, marker='o')
     
     # Add detector planes if provided
     if detector_positions:
         for x_pos in detector_positions:
             # Create a mesh for the detector plane
-            y_range = np.linspace(-50, 50, 10)
-            z_range = np.linspace(0, len(trajectories[0]), 10)
+            all_y = [point[1] for traj in trajectories for point in traj]
+            y_range = np.linspace(min(all_y) - 1, max(all_y) + 1, 10)
+            z_range = np.linspace(0, len(trajectories[0]) - 1, 10)
             Y, Z = np.meshgrid(y_range, z_range)
             X = np.full_like(Y, x_pos)
             
@@ -446,10 +506,7 @@ def plot_trajectories_3d(trajectories, detector_positions=None):
     
     # Set viewing angle
     ax.view_init(elev=20, azim=45)
-    
-    # Set viewing angle
-    ax.view_init(elev=20, azim=45)
-    
+     
     # Adjust layout
     plt.tight_layout()
     
@@ -473,6 +530,7 @@ def animate_trajectories(trajectories, particle_info=None, detector_positions=No
         trajectories (list): List of trajectories
         detector_positions (list, optional): X-coordinates of detectors
         num_frames (int): Number of frames in the animation
+        particle_info (list): Particle properties to assign actual colors
     """
     
     # Create figure
@@ -523,7 +581,6 @@ def animate_trajectories(trajectories, particle_info=None, detector_positions=No
     ax.legend(handles=legend_elements, loc='upper right', fontsize=10, framealpha=0.8)
     
     ax.set_aspect('equal')
-    ax.set_aspect('equal')
     
     # Add text for frame counter
     frame_text = ax.text(0.02, 0.98, '', transform=ax.transAxes, fontsize=10, 
@@ -540,7 +597,7 @@ def animate_trajectories(trajectories, particle_info=None, detector_positions=No
     # Animation function
     def animate(frame):
         # Calculate how many points to show
-        points_to_show = int(frame * len(trajectories[0]) / num_frames)
+        points_to_show = int(frame * (len(trajectories[0]) - 1) / num_frames)
         
         for i, (line, point, trajectory) in enumerate(zip(lines, points, trajectories)):
             # Get points up to current frame
@@ -557,7 +614,7 @@ def animate_trajectories(trajectories, particle_info=None, detector_positions=No
                 point.set_data([], [])
         
         # Update frame counter
-        frame_text.set_text(f'Frame: {frame}/{num_frames}')
+        frame_text.set_text(f'Frame: {frame + 1}/{num_frames}')
         
         return lines + points + [frame_text]
     
@@ -569,7 +626,7 @@ def animate_trajectories(trajectories, particle_info=None, detector_positions=No
     anim.save('output/animation.gif', writer=PillowWriter(fps=20), dpi=150)
     print("Animation saved to output/animation.gif")
     
-    # Save as MP4 video (higher quality)
+    # Save as MP4 video (higher quality) #Aún no ejecutable en el GUI
     try:
         anim.save('output/animation.mp4', writer=FFMpegWriter(fps=20), dpi=150)
         print("Animation saved to output/animation.mp4")
@@ -726,119 +783,6 @@ def calculate_statistics(hits):
 # print("=" * 50)
 
 # ============================================
-# FUNCTION 7: MAIN SIMULATION
-# ============================================
-
-def main_simulation():
-    """
-    Runs the complete particle track simulation.
-    This is the main function that integrates all components.
-    """
-    
-    print("=" * 70)
-    print("PARTICLE TRACK SIMULATOR")
-    print("DESY Ausbildung Application - Alejandra del Río B.")
-    print("=" * 70)
-    print()
-    
-    # Configuration
-    NUM_PARTICLES = 50
-    MAX_TIME = 10
-    TIME_STEPS = 100
-    DETECTOR_POSITIONS = [5, 10, 15]
-    MAGNETIC_FIELD = 0.5   # NEW: Magnetic field strenght
-    
-    print(f"Configuration:")
-    print(f"  - Number of particles: {NUM_PARTICLES}")
-    print(f"  - Maximum time: {MAX_TIME}")
-    print(f"  - Time steps: {TIME_STEPS}")
-    print(f"  - Detector positions: {DETECTOR_POSITIONS}")
-    print()
-    
-    # Step 1: Simulate particles
-    print("Step 1: Simulating particle trajectories...")
-    print(f" Particle types available: (list(PARTICLE_TYPES.keys())")
-    trajectories, particle_info = simulate_particles(NUM_PARTICLES, MAX_TIME, TIME_STEPS, MAGNETIC_FIELD)
-    print(f"  ✓ Generated {len(trajectories)} trajectories")
-    print(f"    Magnetic field: {MAGNETIC_FIELD}")
-    print()
-    
-    # Step 2: Detect hits
-    print("Step 2: Detecting particle hits on detectors...")
-    hits = detect_hits(trajectories, DETECTOR_POSITIONS)
-    
-    # Count total hits
-    total_hits = 0
-    for detector_key, detector_data in hits.items():
-        total_hits += len(detector_data['y_hits'])
-    
-    print(f"  [OK] Detected {total_hits} total hits across {len(hits)} detectors")
-    print()
-    
-    # Step 3: Calculate statistics
-    print("Step 3: Calculating statistics...")
-    stats = calculate_statistics(hits)
-    
-    for detector_key, detector_stats in stats.items():
-        if detector_stats['num_hits'] > 0:
-            print(f"  {detector_key}: {detector_stats['num_hits']} hits, "
-                  f"mean Y = {detector_stats['mean_y']:.2f}, "
-                  f"std = {detector_stats['std_y']:.2f}")
-    print()
-    
-    # Step 4: Plot trajectories
-    print("Step 4: Plotting trajectories...")
-    plot_trajectories(trajectories, particle_info, detector_positions=DETECTOR_POSITIONS, show_legend=True)
-    print(f"  [OK] 2D plot saved to output/tracks.png")
-    
-    # Step 4B: Plot trajectories in 3D
-    print("Step 4B: Plotting trajectories in 3D...")
-    plot_trajectories_3d(trajectories, detector_positions=DETECTOR_POSITIONS)
-    print(f"  [OK] 3D plot saved to output/tracks_3d.png")
-    print()
-
-        # Step 4C: Create animation
-    print("Step 4C: Creating animation...")
-    animate_trajectories(trajectories, particle_info, detector_positions=DETECTOR_POSITIONS, num_frames=50)
-    print(f"  [OK] Animation saved to output/animation.gif")
-    print()
-    
-    # Step 5: Save data to file
-    print("Step 5: Saving data to file...")
-    save_data_to_csv(trajectories, hits, stats)
-    print(f"  ✓ Data saved to output/data.csv")
-    print()
-    
-    print("=" * 70)
-    print("SIMULATION COMPLETE!")
-    print("=" * 70)
-
-    # Verification: Check some trajectory points
-    print("\n=== VERIFICATION ===")
-    print(f"First particle, first 5 points:")
-    for i in range(5):
-        x, y = trajectories[0][i]
-        print(f"  Point {i}: ({x:.2f}, {y:.2f})")
-    
-    # Check if trajectories are curved (not straight lines)
-    # For a straight line, the ratio y/x should be constant
-    # For a curved line, it changes
-    first_traj = trajectories[0]
-    ratios = []
-    for point in first_traj[1:10]:  # Skip origin (0,0)
-        if abs(point[0]) > 0.1:  # Avoid division by zero
-            ratios.append(point[1] / point[0])
-    
-    if len(ratios) > 1:
-        ratio_change = abs(ratios[-1] - ratios[0])
-        if ratio_change > 0.1:
-            print(f"\n✓ Trajectories are CURVED (ratio change: {ratio_change:.2f})")
-        else:
-            print(f"\n⚠ Trajectories are STRAIGHT (ratio change: {ratio_change:.2f})")
-    print("====================\n")
-
-
-# ============================================
 # FUNCTION 6B: SAVE DATA TO CSV
 # ============================================
 
@@ -882,16 +826,18 @@ def save_data_to_csv(trajectories, hits, stats):
                 x, y = trajectories[particle_idx][point_idx]
                 f.write(f"{particle_idx+1},{point_idx},{x:.6f},{y:.6f}\n")
 
+
 # ============================================
-# FUNCTION 8: COUNT PARTICLES BY TYPE
+# FUNCTION 7: COUNT PARTICLES BY TYPE
 # ============================================
 
-def count_particles_by_type(trajectories):
+def count_particles_by_type(trajectories, particle_info):
     """
     Counts how many particles of each type were simulated.
     
     Args:
         trajectories (list): List of trajectories
+        particle_info (list): Particle properties to count the type of particles
     
     Returns:
         dict: Dictionary with counts for each particle type
@@ -902,11 +848,141 @@ def count_particles_by_type(trajectories):
     # This would require passing particle info with trajectories
     # For now, we'll just count total
     total = len(trajectories)
+
+    for info in particle_info:
+        ptype = info['type']
+        counts[ptype] += 1
+
+    counts['total'] = len(particle_info)
+    return counts
     
-    return {'total': total, 'by_type': counts}
+   # return {'total': total, 'by_type': counts}
 
 
-                
+
+# ============================================
+# FUNCTION 8: MAIN SIMULATION
+# ============================================
+
+def main_simulation():
+    """
+    Runs the complete particle track simulation.
+    
+    This function defines the simulation configuration, executes each stage
+    in the correct order, creates visual outputs and saves a data report.
+    """
+    
+    print("=" * 70)
+    print("PARTICLE TRACK SIMULATOR")
+    print("DESY Ausbildung Application - Alejandra del Río B.")
+    print("=" * 70)
+    print()
+    
+    # Configuration
+    NUM_PARTICLES = 50
+    MAX_TIME = 10
+    TIME_STEPS = 100
+    DETECTOR_POSITIONS = [5, 10, 15]
+    MAGNETIC_FIELD = 0.5   # NEW: Magnetic field strenght
+    
+    print(f"Configuration:")
+    print(f"  - Number of particles: {NUM_PARTICLES}")
+    print(f"  - Maximum time: {MAX_TIME}")
+    print(f"  - Time steps: {TIME_STEPS}")
+    print(f"  - Detector positions: {DETECTOR_POSITIONS}")
+    print()
+    
+    # Step 1: Simulate particles
+    print("Step 1: Simulating particle trajectories...")
+    print(f"Particle types available: {list(PARTICLE_TYPES.keys())}")
+    trajectories, particle_info = simulate_particles(NUM_PARTICLES, MAX_TIME, TIME_STEPS, MAGNETIC_FIELD)
+    print(f"  ✓ Generated {len(trajectories)} trajectories")
+    print(f"    Magnetic field: {MAGNETIC_FIELD}")
+    print()
+    
+    # Step 2: Detect hits
+    print("Step 2: Detecting particle hits on detectors...")
+    hits = detect_hits(trajectories, DETECTOR_POSITIONS)
+    
+    # Count total hits
+    total_hits = 0
+    for detector_key, detector_data in hits.items():
+        total_hits += len(detector_data['y_hits'])
+    
+    print(f"  [OK] Detected {total_hits} total hits across {len(hits)} detectors")
+    print()
+    
+    # Step 3: Calculate statistics
+    print("Step 3: Calculating statistics...")
+    stats = calculate_statistics(hits)
+    
+    for detector_key, detector_stats in stats.items():
+        if detector_stats['num_hits'] > 0:
+            print(f"  {detector_key}: {detector_stats['num_hits']} hits, "
+                  f"mean Y = {detector_stats['mean_y']:.2f}, "
+                  f"std = {detector_stats['std_y']:.2f}")
+    print()
+
+    # Step 3.1: Counts particle by type
+    print("Step 3.1: Calculating particle counts...")
+    particle_counts = count_particles_by_type(trajectories, particle_info)
+    print("Particle counts: ", particle_counts)
+    print()
+    
+    # Step 4: Plot trajectories
+    print("Step 4: Plotting trajectories...")
+    plot_trajectories(trajectories, particle_info, detector_positions=DETECTOR_POSITIONS, show_legend=True)
+    print(f"  [OK] 2D plot saved to output/tracks.png")
+    print()
+    
+    # Step 4B: Plot trajectories in 3D
+    print("Step 4B: Plotting trajectories in 3D...")
+    plot_trajectories_3d(trajectories, particle_info, detector_positions=DETECTOR_POSITIONS)
+    print(f"  [OK] 3D plot saved to output/tracks_3d.png")
+    print()
+
+    # Step 4C: Create animation
+    print("Step 4C: Creating animation...")
+    animate_trajectories(trajectories, particle_info, detector_positions=DETECTOR_POSITIONS, num_frames=50)
+    print(f"  [OK] Animation saved to output/animation.gif")
+    print()
+    
+    # Step 5: Save data to file
+    print("Step 5: Saving data to file...")
+    save_data_to_csv(trajectories, hits, stats)
+    print(f"  ✓ Data saved to output/data.csv")
+    print()
+    
+    print("=" * 70)
+    print("SIMULATION COMPLETE!")
+    print("=" * 70)
+
+    # Verification: Check some trajectory points
+    print("\n=== VERIFICATION ===")
+    print(f"First particle, first 5 points:")
+    for i in range(5):
+        x, y = trajectories[0][i]
+        print(f"  Point {i}: ({x:.2f}, {y:.2f})")
+    
+    # Check if trajectories are curved (not straight lines)
+    # For a straight line, the ratio y/x should be constant
+    # For a curved line, it changes
+    first_traj = trajectories[0]
+    ratios = []
+    for point in first_traj[1:10]:  # Skip origin (0,0)
+        if abs(point[0]) > 0.1:  # Avoid division by zero
+            ratios.append(point[1] / point[0])
+    
+    if len(ratios) > 1:
+        ratio_change = abs(ratios[-1] - ratios[0])
+        if ratio_change > 0.1:
+            print(f"\n✓ Trajectories are CURVED (ratio change: {ratio_change:.2f})")
+        else:
+            print(f"\n⚠ Trajectories are STRAIGHT (ratio change: {ratio_change:.2f})")
+    print("====================\n")
+
+
+
 # ============================================
 # RUN THE SIMULATION
 # ============================================
